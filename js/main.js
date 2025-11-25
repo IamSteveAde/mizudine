@@ -700,42 +700,43 @@
 
 })(document.documentElement);
 
-const track = document.querySelector('.carousel-track');
-const items = Array.from(track.children);
-let index = 0;
-const itemCount = items.length;
-const intervalTime = 4000;
+document.addEventListener("DOMContentLoaded", () => {
+  const track = document.querySelector('#fun-carousel .fun-track');
+  const items = Array.from(track.children);
+  const prevBtn = document.getElementById('fun-prev');
+  const nextBtn = document.getElementById('fun-next');
 
-// Clone first and last for infinite loop
-const firstClone = items[0].cloneNode(true);
-const lastClone = items[items.length - 1].cloneNode(true);
-track.appendChild(firstClone);
-track.insertBefore(lastClone, items[0]);
+  let currentIndex = 0;
 
-const carouselItems = Array.from(track.children);
+  function updateCarousel() {
+    const itemWidth = items[0].offsetWidth + 30; // include margin
 
-let itemWidth = carouselItems[0].getBoundingClientRect().width + 20;
+    items.forEach((item, index) => {
+      item.classList.remove('active-video', 'prev-video', 'next-video');
+      if(index === currentIndex) item.classList.add('active-video');
+      else if(index === (currentIndex - 1 + items.length) % items.length) item.classList.add('prev-video');
+      else if(index === (currentIndex + 1) % items.length) item.classList.add('next-video');
+    });
 
-// Start from first real item
-let currentIndex = 1;
-track.style.transform = `translateX(-${itemWidth * currentIndex}px)`;
+    const offset = ((track.parentElement.offsetWidth - itemWidth) / 2) - currentIndex * itemWidth;
+    track.style.transform = `translateX(${offset}px)`;
+  }
 
-function moveSlide() {
-  currentIndex++;
-  track.style.transition = 'transform 0.6s ease-in-out';
-  track.style.transform = `translateX(-${itemWidth * currentIndex}px)`;
+  function nextSlide() {
+    currentIndex = (currentIndex + 1) % items.length;
+    updateCarousel();
+  }
 
-  track.addEventListener('transitionend', () => {
-    if (currentIndex === carouselItems.length - 1) {
-      track.style.transition = 'none';
-      currentIndex = 1;
-      track.style.transform = `translateX(-${itemWidth * currentIndex}px)`;
-    }
-  });
-}
+  function prevSlide() {
+    currentIndex = (currentIndex - 1 + items.length) % items.length;
+    updateCarousel();
+  }
 
-let slideInterval = setInterval(moveSlide, intervalTime);
+  nextBtn.addEventListener('click', nextSlide);
+  prevBtn.addEventListener('click', prevSlide);
 
-// Optional: pause on hover
-track.addEventListener('mouseenter', () => clearInterval(slideInterval));
-track.addEventListener('mouseleave', () => slideInterval = setInterval(moveSlide, intervalTime));
+  setInterval(nextSlide, 4000);
+
+  window.addEventListener('resize', updateCarousel);
+  updateCarousel();
+});
